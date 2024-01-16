@@ -129,7 +129,7 @@ def train(
             ]:
                 if cache[prompt] == None:
                     cache[prompt] = PromptEmbedsXL(
-                        train_util.encode_prompts_xl(
+                        *train_util.encode_prompts_xl(
                             tokenizers,
                             text_encoders,
                             [prompt],
