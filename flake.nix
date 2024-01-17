@@ -26,18 +26,63 @@
       runScript = pkgs.writeShellScriptBin "run.sh" ''
         ${self.packages.${system}.leco}/bin/train_lora_xl
       '';
-      container = {
-        name = self.packages.${system}.leco.name;
+      container = pkgs.dockerTools.buildImage {
+        name = "LECO";
         tag = self.packages.${system}.leco.version;
         created = "now";
         copyToRoot = pkgs.buildEnv {
           name = "image-root";
-          pathsToLink = ["/bin"];
-          paths = [pkgs.bash self.packages.${system}.leco runScript];
+          paths = [pkgs.bash self.packages.${system}.leco runScript pkgs.dockerTools.caCertificates];
         };
         config = {
           Cmd = ["${pkgs.bash}/bin/bash" "${runScript}/bin/run.sh"];
         };
+      };
+      downloadModel = {
+        filename,
+        url,
+        hash,
+      }:
+        pkgs.fetchurl {
+          url = url;
+          hash = hash;
+          curlOpts = "-L";
+          downloadToTemp = true;
+          recursiveHash = true;
+          postFetch = ''
+            mkdir -p $out/models
+            mv $downloadedFile $out/models/${filename}
+          '';
+        };
+      sdxlModel = downloadModel {
+        filename = "sd_xl_base_1.0.safetensors";
+        url = "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/resolve/main/sd_xl_base_1.0.safetensors";
+        hash = "sha256-TZr6fvL2SQ67R5IsSKoLhCyZM0Azk3Y9Ouy2zhUVTn4=";
+      };
+      sd15Model = downloadModel {
+        filename = "v1-5-pruned-emaonly.safetensors";
+        url = "https://huggingface.co/runwayml/stable-diffusion-v1-5/resolve/main/v1-5-pruned-emaonly.safetensors";
+        hash = "sha256-0H+/b+joVlsQm9YIjJWDUFNq+50M9rrA4LsTN4dI1k4=";
+      };
+      containerWithModels = {
+        name,
+        models,
+      }:
+        pkgs.dockerTools.buildImage {
+          name = "LECO-${name}";
+          fromImage = container;
+          copyToRoot = pkgs.buildEnv {
+            name = "models";
+            paths = models;
+          };
+        };
+      sdxlContainer = containerWithModels {
+        name = "sdxl";
+        models = [sdxlModel];
+      };
+      sd15Container = containerWithModels {
+        name = "sd-1-5";
+        models = [sd15Model];
       };
     in {
       packages = {
@@ -134,7 +179,9 @@
           ];
         };
         default = self.packages.${system}.leco;
-        container = pkgs.dockerTools.buildImage container;
+        container = container;
+        sdxlContainer = sdxlContainer;
+        sd15Container = sd15Container;
       };
 
       apps = {
