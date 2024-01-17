@@ -385,16 +385,7 @@ def train(
     print("Done.")
 
 
-def main(args):
-    config_file = args.config_file
-
-    config = config_util.load_config_from_yaml(config_file)
-    prompts = prompt_util.load_prompts_from_yaml(config.prompts_file)
-
-    train(config, prompts)
-
-
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--config_file",
@@ -404,4 +395,13 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    main(args)
+    config_file = args.config_file
+
+    config = config_util.load_config_from_yaml(config_file)
+    prompts = prompt_util.load_prompts_from_yaml(config.prompts_file)
+
+    train(config, prompts)
+
+
+if __name__ == "__main__":
+    main()
