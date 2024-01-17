@@ -1,0 +1,78 @@
+[tool.ruff]
+
+target-version = "py39"
+
+extend-select = [
+  "B",
+  "C",
+  "I",
+  "W",
+]
+
+exclude = [
+	"extensions",
+	"extensions-disabled",
+]
+
+ignore = [
+	"E501", # Line too long
+	"E731", # Do not assign a `lambda` expression, use a `def`
+	
+	"I001", # Import block is un-sorted or un-formatted
+	"C901", # Function is too complex
+	"C408", # Rewrite as a literal
+	"W605", # invalid escape sequence, messes with some docstrings
+]
+
+[tool.ruff.per-file-ignores]
+"lora.py" = ["E402"]  # Module level import not at top of file
+
+[tool.ruff.flake8-bugbear]
+# Allow default arguments like, e.g., `data: List[str] = fastapi.Query(None)`.
+extend-immutable-calls = ["fastapi.Depends", "fastapi.security.HTTPBasic"]
+
+[tool.poetry]
+name = "LECO"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+packages = [
+    {include = "config_util.py"},
+    {include = "debug_util.py"},
+    {include = "flush.py"},
+    {include = "lora.py"},
+    {include = "model_util.py"},
+    {include = "prompt_util.py"},
+    {include = "train_lora_xl.py"},
+    {include = "train_lora.py"},
+    {include = "train_util.py"},
+]
+
+[tool.setuptools]
+py-modules = []
+
+[tool.poetry.scripts]
+train_lora_xl = 'train_lora_xl:main'
+train_lora = 'train_lora:main'
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.13"
+xformers = "^0.0.23.post1"
+diffusers = "0.20.0"
+transformers = "4.33.1"
+accelerate = "0.22.0"
+scipy = "^1.11.4"
+safetensors = "^0.4.1"
+pyyaml = "^6.0.1"
+pydantic = "^2.5.3"
+dadaptation = "^3.2"
+lion-pytorch = "^0.1.2"
+prodigyopt = "^1.0"
+wandb = "^0.16.2"
+omegaconf = "^2.3.0"
+invisible-watermark = "0.2.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

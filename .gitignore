@@ -165,6 +165,7 @@ wandb/
 
 # output
 output/
+result
 
 # for testing
 /config.yaml
