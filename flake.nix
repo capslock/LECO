@@ -24,7 +24,13 @@
       p2n = poetry2nix.lib.mkPoetry2Nix {inherit pkgs;};
       outDir = "$out/${pkgs.python311Packages.python.sitePackages}";
       runScript = pkgs.writeShellScriptBin "run.sh" ''
-        ${self.packages.${system}.leco}/bin/train_lora_xl
+        if [ -n "$LECO_CONFIG" ]; then
+          echo "$LECO_CONFIG" > /config/config.yaml
+        fi
+        if [ -n "$LECO_PROMPT" ]; then
+          echo "$LECO_PROMPT" > /config/prompt.yaml
+        fi
+        ${self.packages.${system}.leco}/bin/train_lora_xl --config_file /config/config.yaml
       '';
       container = pkgs.dockerTools.buildImage {
         name = "LECO";
@@ -33,8 +39,14 @@
         copyToRoot = pkgs.buildEnv {
           name = "image-root";
           paths = [pkgs.bash self.packages.${system}.leco runScript pkgs.dockerTools.caCertificates];
+          pathsToLink = ["/bin" "/etc"];
         };
+        runAsRoot = ''
+          mkdir -p /config
+          mkdir -p /data
+        '';
         config = {
+          WorkingDir = "/data";
           Cmd = ["${pkgs.bash}/bin/bash" "${runScript}/bin/run.sh"];
         };
       };
