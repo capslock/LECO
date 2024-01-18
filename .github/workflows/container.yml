@@ -1,0 +1,36 @@
+name: Deploy Images to GHCR
+
+on:
+  push:
+    tags:
+      - v*
+  workflow_dispatch:
+
+permissions:
+  packages: write
+
+jobs:
+  push-container-image:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+     - uses: actions/checkout@main
+     - name: Install Nix
+       uses: cachix/install-nix-action@v22
+       with:
+         github_access_token: ${{ secrets.GITHUB_TOKEN }}
+     - name: Build container image
+       run: nix build .#streamedSdxlContainer 
+     - name: 'Login to GitHub Container Registry'
+       uses: docker/login-action@v3
+       with:
+         registry: ghcr.io
+         username: ${{ github.actor }}
+         password: ${{ secrets.GITHUB_TOKEN }}
+     - name: 'Push Container Image'
+       run: |
+         ./result | docker load
+         docker tag LECO-sdxl:0.1.0 ghcr.io/capslock/LECO-sdxl:latest
+         docker push ghcr.io/capslock/LECO-sdxl:latest
