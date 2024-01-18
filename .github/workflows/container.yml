@@ -16,6 +16,9 @@ jobs:
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
+     - name: 'Remove a bunch of stuff'
+       run: |
+         rm -rf /opt/hostedtoolcache
      - uses: actions/checkout@main
      - name: Install Nix
        uses: cachix/install-nix-action@v22
