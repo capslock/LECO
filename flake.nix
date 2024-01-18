@@ -38,7 +38,12 @@
         created = "now";
         copyToRoot = pkgs.buildEnv {
           name = "image-root";
-          paths = [pkgs.bash self.packages.${system}.leco runScript pkgs.dockerTools.caCertificates];
+          paths = [
+            pkgs.bash
+            self.packages.${system}.leco
+            runScript
+            pkgs.dockerTools.caCertificates
+          ];
           pathsToLink = ["/bin" "/etc"];
         };
         runAsRoot = ''
@@ -50,6 +55,34 @@
           Cmd = ["${pkgs.bash}/bin/bash" "${runScript}/bin/run.sh"];
         };
       };
+      containerWithModels = {
+        name,
+        models,
+      }:
+        pkgs.dockerTools.buildImage {
+          name = "LECO-${name}";
+          tag = self.packages.${system}.leco.version;
+          created = "now";
+          copyToRoot = pkgs.buildEnv {
+            name = "image-root";
+            paths = [
+              pkgs.bash
+              self.packages.${system}.leco
+              runScript
+              pkgs.dockerTools.caCertificates
+              models
+            ];
+            pathsToLink = ["/bin" "/etc" "/models"];
+          };
+          runAsRoot = ''
+            mkdir -p /config
+            mkdir -p /data
+          '';
+          config = {
+            WorkingDir = "/data";
+            Cmd = ["${pkgs.bash}/bin/bash" "${runScript}/bin/run.sh"];
+          };
+        };
       downloadModel = {
         filename,
         url,
@@ -76,19 +109,6 @@
         url = "https://huggingface.co/runwayml/stable-diffusion-v1-5/resolve/main/v1-5-pruned-emaonly.safetensors";
         hash = "sha256-0H+/b+joVlsQm9YIjJWDUFNq+50M9rrA4LsTN4dI1k4=";
       };
-      containerWithModels = {
-        name,
-        models,
-      }:
-        pkgs.dockerTools.buildImage {
-          name = "LECO-${name}";
-          tag = self.packages.${system}.leco.version;
-          fromImage = container;
-          copyToRoot = pkgs.buildEnv {
-            name = "models";
-            paths = models;
-          };
-        };
       sdxlContainer = containerWithModels {
         name = "sdxl";
         models = [sdxlModel];
