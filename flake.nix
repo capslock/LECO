@@ -82,6 +82,7 @@
       }:
         pkgs.dockerTools.buildImage {
           name = "LECO-${name}";
+          tag = self.packages.${system}.leco.version;
           fromImage = container;
           copyToRoot = pkgs.buildEnv {
             name = "models";
@@ -95,6 +96,16 @@
       sd15Container = containerWithModels {
         name = "sd-1-5";
         models = [sd15Model];
+      };
+      streamedSdxlContainer = pkgs.dockerTools.streamLayeredImage {
+        name = "LECO-sdxl";
+        tag = self.packages.${system}.leco.version;
+        fromImage = sdxlContainer;
+      };
+      streamedSd15Container = pkgs.dockerTools.streamLayeredImage {
+        name = "LECO-sd-1-5";
+        tag = self.packages.${system}.leco.version;
+        fromImage = sd15Container;
       };
     in {
       packages = {
@@ -194,6 +205,8 @@
         container = container;
         sdxlContainer = sdxlContainer;
         sd15Container = sd15Container;
+        streamedSdxlContainer = streamedSdxlContainer;
+        streamedSd15Container = streamedSd15Container;
       };
 
       apps = {
