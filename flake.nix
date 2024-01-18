@@ -69,7 +69,7 @@
       sdxlModel = downloadModel {
         filename = "sd_xl_base_1.0.safetensors";
         url = "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/resolve/main/sd_xl_base_1.0.safetensors";
-        hash = "sha256-TZr6fvL2SQ67R5IsSKoLhCyZM0Azk3Y9Ouy2zhUVTn4=";
+        hash = "sha256-5A9qgIbo33PU3tuRLg829Ty++WSPZ1D4+gpWOML2pFk=";
       };
       sd15Model = downloadModel {
         filename = "v1-5-pruned-emaonly.safetensors";

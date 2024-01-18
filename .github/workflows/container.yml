@@ -34,6 +34,7 @@ jobs:
          password: ${{ secrets.GITHUB_TOKEN }}
      - name: 'Push Container Image'
        run: |
+         nix store gc
          ./result | docker load
          docker tag LECO-sdxl:0.1.0 ghcr.io/capslock/LECO-sdxl:latest
          docker push ghcr.io/capslock/LECO-sdxl:latest
