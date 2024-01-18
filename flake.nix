@@ -55,15 +55,15 @@
           Cmd = ["${pkgs.bash}/bin/bash" "${runScript}/bin/run.sh"];
         };
       };
-      containerWithModels = {
+      streamedContainerWithModels = {
         name,
         models,
       }:
-        pkgs.dockerTools.buildImage {
+        pkgs.dockerTools.streamLayeredImage {
           name = "LECO-${name}";
           tag = self.packages.${system}.leco.version;
           created = "now";
-          copyToRoot = pkgs.buildEnv {
+          contents = pkgs.buildEnv {
             name = "image-root";
             paths =
               [
@@ -75,7 +75,7 @@
               ++ models;
             pathsToLink = ["/bin" "/etc" "/models"];
           };
-          runAsRoot = ''
+          fakeRootCommands = ''
             mkdir -p /config
             mkdir -p /data
           '';
@@ -110,23 +110,13 @@
         url = "https://huggingface.co/runwayml/stable-diffusion-v1-5/resolve/main/v1-5-pruned-emaonly.safetensors";
         hash = "sha256-0H+/b+joVlsQm9YIjJWDUFNq+50M9rrA4LsTN4dI1k4=";
       };
-      sdxlContainer = containerWithModels {
+      streamedSdxlContainer = streamedContainerWithModels {
         name = "sdxl";
         models = [sdxlModel];
       };
-      sd15Container = containerWithModels {
+      streamedSd15Container = streamedContainerWithModels {
         name = "sd-1-5";
         models = [sd15Model];
-      };
-      streamedSdxlContainer = pkgs.dockerTools.streamLayeredImage {
-        name = "LECO-sdxl";
-        tag = self.packages.${system}.leco.version;
-        fromImage = sdxlContainer;
-      };
-      streamedSd15Container = pkgs.dockerTools.streamLayeredImage {
-        name = "LECO-sd-1-5";
-        tag = self.packages.${system}.leco.version;
-        fromImage = sd15Container;
       };
     in {
       packages = {
@@ -224,8 +214,6 @@
         };
         default = self.packages.${system}.leco;
         container = container;
-        sdxlContainer = sdxlContainer;
-        sd15Container = sd15Container;
         streamedSdxlContainer = streamedSdxlContainer;
         streamedSd15Container = streamedSd15Container;
       };
