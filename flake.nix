@@ -79,6 +79,7 @@
               ++ models;
             pathsToLink = ["/bin" "/etc" "/models"];
           };
+          enableFakechroot = true;
           fakeRootCommands = ''
             mkdir -p /config
             mkdir -p /data
