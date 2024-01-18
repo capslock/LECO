@@ -16,9 +16,16 @@ jobs:
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
-     - name: 'Remove a bunch of stuff'
-       run: |
-         rm -rf /opt/hostedtoolcache
+     - name: Free Disk Space (Ubuntu)
+       uses: jlumbroso/free-disk-space@main
+       with:
+         tool-cache: true
+         android: true
+         dotnet: true
+         haskell: true
+         large-packages: true
+         docker-images: true
+         swap-storage: true
      - uses: actions/checkout@main
      - name: Install Nix
        uses: cachix/install-nix-action@v22
