@@ -65,13 +65,14 @@
           created = "now";
           copyToRoot = pkgs.buildEnv {
             name = "image-root";
-            paths = [
-              pkgs.bash
-              self.packages.${system}.leco
-              runScript
-              pkgs.dockerTools.caCertificates
-              models
-            ];
+            paths =
+              [
+                pkgs.bash
+                self.packages.${system}.leco
+                runScript
+                pkgs.dockerTools.caCertificates
+              ]
+              ++ models;
             pathsToLink = ["/bin" "/etc" "/models"];
           };
           runAsRoot = ''
