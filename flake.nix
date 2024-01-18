@@ -51,8 +51,12 @@
           mkdir -p /data
         '';
         config = {
-          WorkingDir = "/data";
           Cmd = ["${pkgs.bash}/bin/bash" "${runScript}/bin/run.sh"];
+          Env = [
+            "NVIDIA_DRIVER_CAPABILITIES=compute,utility"
+            "NVIDIA_VISIBLE_DEVICES=all"
+          ];
+          WorkingDir = "/data";
         };
       };
       streamedContainerWithModels = {
@@ -80,8 +84,12 @@
             mkdir -p /data
           '';
           config = {
-            WorkingDir = "/data";
             Cmd = ["${pkgs.bash}/bin/bash" "${runScript}/bin/run.sh"];
+            Env = [
+              "NVIDIA_DRIVER_CAPABILITIES=compute,utility"
+              "NVIDIA_VISIBLE_DEVICES=all"
+            ];
+            WorkingDir = "/data";
           };
         };
       downloadModel = {
