@@ -24,6 +24,7 @@
       p2n = poetry2nix.lib.mkPoetry2Nix {inherit pkgs;};
       outDir = "$out/${pkgs.python311Packages.python.sitePackages}";
       runScript = pkgs.writeShellScriptBin "run.sh" ''
+        mkdir -p /config /data
         if [ -n "$LECO_CONFIG" ]; then
           echo "$LECO_CONFIG" > /config/config.yaml
         fi
@@ -79,11 +80,6 @@
               ++ models;
             pathsToLink = ["/bin" "/etc" "/models"];
           };
-          enableFakechroot = true;
-          fakeRootCommands = ''
-            mkdir -p /config
-            mkdir -p /data
-          '';
           config = {
             Cmd = ["${pkgs.bash}/bin/bash" "${runScript}/bin/run.sh"];
             Env = [
