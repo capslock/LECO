@@ -41,6 +41,7 @@
           name = "image-root";
           paths = [
             pkgs.bash
+            pkgs.uutils-coreutils-noprefix
             self.packages.${system}.leco
             runScript
             pkgs.dockerTools.caCertificates
@@ -73,6 +74,7 @@
             paths =
               [
                 pkgs.bash
+                pkgs.uutils-coreutils-noprefix
                 self.packages.${system}.leco
                 runScript
                 pkgs.dockerTools.caCertificates
