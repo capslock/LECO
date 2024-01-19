@@ -20,11 +20,16 @@
       pkgs = import nixpkgs {
         inherit system;
         config.allowUnfree = true;
+        config.cudaSupport = true;
+        config.cudaCapabilities = ["7.0" "8.0" "8.6"];
       };
       p2n = poetry2nix.lib.mkPoetry2Nix {inherit pkgs;};
       outDir = "$out/${pkgs.python311Packages.python.sitePackages}";
       runScript = pkgs.writeShellScriptBin "run.sh" ''
         mkdir -p /config /data
+
+        /bin/nvidia-smi
+
         if [ -n "$LECO_CONFIG" ]; then
           echo "$LECO_CONFIG" > /config/config.yaml
         fi
@@ -45,6 +50,7 @@
             self.packages.${system}.leco
             runScript
             pkgs.dockerTools.caCertificates
+            pkgs.cudaPackages_12.cudatoolkit
           ];
           pathsToLink = ["/bin" "/etc"];
         };
@@ -57,6 +63,7 @@
           Env = [
             "NVIDIA_DRIVER_CAPABILITIES=compute,utility"
             "NVIDIA_VISIBLE_DEVICES=all"
+            "LD_LIBRARY_PATH=/usr/lib64"
           ];
           WorkingDir = "/data";
         };
@@ -78,15 +85,22 @@
                 self.packages.${system}.leco
                 runScript
                 pkgs.dockerTools.caCertificates
+                pkgs.cudaPackages_12.cudatoolkit
               ]
               ++ models;
             pathsToLink = ["/bin" "/etc" "/models"];
           };
+          enableFakechroot = true;
+          fakeRootCommands = ''
+            mkdir -p /config
+            mkdir -p /data
+          '';
           config = {
             Cmd = ["${pkgs.bash}/bin/bash" "${runScript}/bin/run.sh"];
             Env = [
               "NVIDIA_DRIVER_CAPABILITIES=compute,utility"
               "NVIDIA_VISIBLE_DEVICES=all"
+              "LD_LIBRARY_PATH=/usr/lib64"
             ];
             WorkingDir = "/data";
           };
@@ -143,9 +157,7 @@
                     buildInputs =
                       (old.nativeBuildInputs or [])
                       ++ [
-                        (pkgs.libtorch-bin.override
-                          {cudaSupport = true;})
-                        prev.setuptools
+                        pkgs.libtorch-bin
                         pkgs.cudaPackages_12.cuda_cudart
                       ];
                   }
@@ -161,42 +173,9 @@
                       ];
                   }
                 );
-              prodigyopt =
-                prev.prodigyopt.overridePythonAttrs
-                (
-                  old: {
-                    buildInputs =
-                      (old.buildInputs or [])
-                      ++ [
-                        prev.setuptools
-                      ];
-                  }
-                );
-              diffusers =
-                prev.diffusers.overridePythonAttrs
-                (
-                  old: {
-                    buildInputs =
-                      (old.buildInputs or [])
-                      ++ [
-                        prev.setuptools
-                      ];
-                  }
-                );
-              lion-pytorch =
-                prev.lion-pytorch.overridePythonAttrs
-                (
-                  old: {
-                    buildInputs =
-                      (old.buildInputs or [])
-                      ++ [
-                        prev.setuptools
-                      ];
-                  }
-                );
               nvidia-cusparse-cu12 = prev.nvidia-cusparse-cu12.overrideAttrs (
                 old: {
-                  buildInputs = (old.buildInputs or []) ++ [pkgs.cudaPackages_12_1.libcusparse];
+                  buildInputs = (old.buildInputs or []) ++ [pkgs.cudaPackages_12.libnvjitlink];
                 }
               );
               nvidia-cusolver-cu12 = prev.nvidia-cusolver-cu12.overrideAttrs (
@@ -204,19 +183,13 @@
                   buildInputs =
                     (old.buildInputs or [])
                     ++ [
-                      pkgs.cudaPackages_12_1.libcusparse
-                      pkgs.cudaPackages_12_1.libcublas
+                      pkgs.cudaPackages_12.libcusparse
+                      pkgs.cudaPackages_12.libcublas
                     ];
                 }
               );
             })
             p2n.defaultPoetryOverrides
-            (final: prev: {
-              pytorch-lightning = prev.pytorch-lightning.override {
-                preferWheel = true;
-                unpackPhase = "";
-              };
-            })
           ];
         };
         default = self.packages.${system}.leco;
