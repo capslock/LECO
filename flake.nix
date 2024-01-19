@@ -68,12 +68,21 @@
           WorkingDir = "/data";
         };
       };
+      emptyContainer = pkgs.dockerTools.buildImage {
+        name = "empty";
+        tag = "latest";
+        runAsRoot = ''
+          mkdir -p /config
+          mkdir -p /data
+        '';
+      };
       streamedContainerWithModels = {
         name,
         models,
       }:
         pkgs.dockerTools.streamLayeredImage {
           name = "LECO-${name}";
+          fromImage = emptyContainer;
           tag = self.packages.${system}.leco.version;
           created = "now";
           contents = pkgs.buildEnv {
@@ -86,19 +95,9 @@
                 runScript
                 pkgs.dockerTools.caCertificates
                 pkgs.cudaPackages_12.cudatoolkit
-                (pkgs.stdenv.mkDerivation
-                  {
-                    name = "mkdirConfigData";
-                    src = ./.;
-                    phases = ["installPhase"];
-                    installPhase = ''
-                      mkdir -p $out/config
-                      mkdir -p $out/data
-                    '';
-                  })
               ]
               ++ models;
-            pathsToLink = ["/bin" "/etc" "/models" "/config" "/data"];
+            pathsToLink = ["/bin" "/etc" "/models"];
           };
           config = {
             Cmd = ["${pkgs.bash}/bin/bash" "${runScript}/bin/run.sh"];
@@ -163,7 +162,7 @@
                       (old.nativeBuildInputs or [])
                       ++ [
                         pkgs.libtorch-bin
-                        pkgs.cudaPackages_12.cuda_cudart
+                        pkgs.cudaPackages_12.cudatoolkit
                       ];
                   }
                 );
@@ -180,7 +179,7 @@
                 );
               nvidia-cusparse-cu12 = prev.nvidia-cusparse-cu12.overrideAttrs (
                 old: {
-                  buildInputs = (old.buildInputs or []) ++ [pkgs.cudaPackages_12.libnvjitlink];
+                  buildInputs = (old.buildInputs or []) ++ [pkgs.cudaPackages_12.cudatoolkit];
                 }
               );
               nvidia-cusolver-cu12 = prev.nvidia-cusolver-cu12.overrideAttrs (
@@ -188,8 +187,7 @@
                   buildInputs =
                     (old.buildInputs or [])
                     ++ [
-                      pkgs.cudaPackages_12.libcusparse
-                      pkgs.cudaPackages_12.libcublas
+                      pkgs.cudaPackages_12.cudatoolkit
                     ];
                 }
               );
