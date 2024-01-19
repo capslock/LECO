@@ -86,15 +86,20 @@
                 runScript
                 pkgs.dockerTools.caCertificates
                 pkgs.cudaPackages_12.cudatoolkit
+                (pkgs.stdenv.mkDerivation
+                  {
+                    name = "mkdirConfigData";
+                    src = ./.;
+                    phases = ["installPhase"];
+                    installPhase = ''
+                      mkdir -p $out/config
+                      mkdir -p $out/data
+                    '';
+                  })
               ]
               ++ models;
-            pathsToLink = ["/bin" "/etc" "/models"];
+            pathsToLink = ["/bin" "/etc" "/models" "/config" "/data"];
           };
-          enableFakechroot = true;
-          fakeRootCommands = ''
-            mkdir -p /config
-            mkdir -p /data
-          '';
           config = {
             Cmd = ["${pkgs.bash}/bin/bash" "${runScript}/bin/run.sh"];
             Env = [
