@@ -135,6 +135,10 @@
         url = "https://huggingface.co/runwayml/stable-diffusion-v1-5/resolve/main/v1-5-pruned-emaonly.safetensors";
         hash = "sha256-0H+/b+joVlsQm9YIjJWDUFNq+50M9rrA4LsTN4dI1k4=";
       };
+      streamedContainer = streamedContainerWithModels {
+        name = "empty";
+        models = [];
+      };
       streamedSdxlContainer = streamedContainerWithModels {
         name = "sdxl";
         models = [sdxlModel];
@@ -197,6 +201,7 @@
         };
         default = self.packages.${system}.leco;
         container = container;
+        streamedContainer = streamedContainer;
         streamedSdxlContainer = streamedSdxlContainer;
         streamedSd15Container = streamedSd15Container;
       };
