@@ -50,7 +50,6 @@
             self.packages.${system}.leco
             runScript
             pkgs.dockerTools.caCertificates
-            pkgs.cudaPackages_12.cudatoolkit
           ];
           pathsToLink = ["/bin" "/etc"];
         };
@@ -94,7 +93,6 @@
                 self.packages.${system}.leco
                 runScript
                 pkgs.dockerTools.caCertificates
-                pkgs.cudaPackages_12.cudatoolkit
               ]
               ++ models;
             pathsToLink = ["/bin" "/etc" "/models"];
@@ -104,7 +102,7 @@
             Env = [
               "NVIDIA_DRIVER_CAPABILITIES=compute,utility"
               "NVIDIA_VISIBLE_DEVICES=all"
-              "LD_LIBRARY_PATH=/usr/lib64"
+              "LD_LIBRARY_PATH=${pkgs.stdenv.cc.cc.lib}/lib:/usr/lib64:${pkgs.cudaPackages_12.cuda_cudart}/lib:${pkgs.cudaPackages_12.libcublas}/lib:${pkgs.cudaPackages_12.libcusparse}/lib:${pkgs.libtorch-bin}/lib"
             ];
             WorkingDir = "/data";
           };
@@ -163,10 +161,10 @@
                 (
                   old: {
                     buildInputs =
-                      (old.nativeBuildInputs or [])
+                      (old.buildInputs or [])
                       ++ [
                         pkgs.libtorch-bin
-                        pkgs.cudaPackages_12.cudatoolkit
+                        pkgs.cudaPackages_12.cuda_cudart
                       ];
                   }
                 );
@@ -183,7 +181,7 @@
                 );
               nvidia-cusparse-cu12 = prev.nvidia-cusparse-cu12.overrideAttrs (
                 old: {
-                  buildInputs = (old.buildInputs or []) ++ [pkgs.cudaPackages_12.cudatoolkit];
+                  buildInputs = (old.buildInputs or []) ++ [pkgs.cudaPackages_12.libcusparse];
                 }
               );
               nvidia-cusolver-cu12 = prev.nvidia-cusolver-cu12.overrideAttrs (
@@ -191,7 +189,8 @@
                   buildInputs =
                     (old.buildInputs or [])
                     ++ [
-                      pkgs.cudaPackages_12.cudatoolkit
+                      pkgs.cudaPackages_12.libcublas
+                      pkgs.cudaPackages_12.libcusparse
                     ];
                 }
               );
@@ -212,7 +211,6 @@
           program = "${pkgs.buildFHSUserEnv {
             name = "leco-fhs";
             targetPkgs = pkgs: (with pkgs; [
-              cudatoolkit
               cudaPackages_12_1.cudnn
             ]);
             runScript = "${pkgs.writeShellScriptBin "run.sh" ''
