@@ -43,5 +43,5 @@ jobs:
        run: |
          nix store gc
          ./result | docker load
-         docker tag leco-sdxl:0.1.0 ghcr.io/capslock/leco-sdxl:latest
-         docker push ghcr.io/capslock/leco-sdxl:latest
+         docker tag leco-empty:0.1.0 ghcr.io/capslock/leco-empty:latest
+         docker push ghcr.io/capslock/leco-empty:latest
